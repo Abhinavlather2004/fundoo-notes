@@ -1,5 +1,5 @@
 class UserMailer < ApplicationMailer
-  default from: "aryannegi522@gmail.com"
+  default from: "latheabhinav55@gmail.com"
 
   def text_mail(email,otp)
     @message = "Here is your One Time Password: #{otp}"
