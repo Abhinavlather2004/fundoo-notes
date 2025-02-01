@@ -8,6 +8,7 @@ class UsersService
   end
 
   @@otp = nil
+  @@otp_generated_at = nil
 
   def self.create_user(params)
     user = User.new(params)
@@ -37,6 +38,7 @@ class UsersService
       raise InvalidEmailError, "User with this email does not exist" if user.nil?
   
       @@otp = generate_otp
+      @@otp_generated_at = Time.current
       UserMailer.text_mail(user.email, @@otp).deliver_now
   
       { success: true, message: "OTP sent successfully" }
@@ -50,7 +52,7 @@ class UsersService
   def self.reset_password(user_id, rp_params)
     raise InvalidOtpError, "OTP has not been generated" if @@otp.nil?
 
-    if rp_params[:otp].to_i == @@otp
+    if rp_params[:otp].to_i == @@otp && (Time.current - @@otp_generated_at < 1.minute)
       user = User.find_by(id: user_id)
       if user
         user.update(password: rp_params[:new_password])
