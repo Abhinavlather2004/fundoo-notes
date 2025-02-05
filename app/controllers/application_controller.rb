@@ -18,4 +18,23 @@ class ApplicationController < ActionController::Base
   #     render json: { error: 'Invalid token' }, status: :unauthorized
   #   end
   # end
+
+  before_action :authenticate_user!
+  protect_from_forgery with: :null_session, if: -> { request.format.json? }
+
+  def authenticate_user!
+    render json: {error: "Unauthorized user"}, status: :unauthorized unless current_user
+  end
+
+  def current_user
+    @current_user ||= User.find_by(id: decoded_token[:user_id]) if decoded_token
+  end
+
+  private
+
+  def decoded_token
+    token = request.headers['Authorization']&.split(' ')&.last
+    JsonWebToken.decode(token) if token
+  end
+
 end

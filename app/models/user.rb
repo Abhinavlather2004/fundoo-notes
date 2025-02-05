@@ -1,6 +1,9 @@
 # require 'bcrypt'
 class User < ApplicationRecord
   # include BCrypt
+  has_many :notes, dependent: :destroy
+  has_many :collaborations, dependent: :destroy
+  has_many :shared_notes, through: :collaborations, source: :note
   has_secure_password
   
   validates :name, presence: true
