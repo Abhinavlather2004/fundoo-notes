@@ -69,3 +69,5 @@ gem "dotenv-rails", "~> 3.1"
 gem "bunny", "~> 2.23"
 
 gem 'sidekiq'
+
+gem "redis", "~> 4.2"
