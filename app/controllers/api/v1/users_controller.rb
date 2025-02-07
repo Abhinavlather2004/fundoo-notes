@@ -38,7 +38,7 @@ module Api
       def forgot_password
         result = UsersService.forgot_password(forgot_password_params[:email])
         if result[:success]
-          render json: { message: result[:message], otp: result[:otp] }, status: :ok
+          render json: { message: result[:message]}, status: :ok
         else
           render json: { error: result[:error] }, status: :bad_request
         end
