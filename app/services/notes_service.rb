@@ -30,16 +30,34 @@ class NotesService
   end
 
   def self.create_note(user, note_params)
-    begin
-      note = user.notes.build(note_params.merge(isDeleted: false))
-      if note.save
-        { success: true, note: note }
-      else
-        { success: false, errors: note.errors.full_messages }
-      end
-    rescue StandardError => e
-      { success: false, errors: ["Failed to create note: #{e.message}"] }
+
+    cache_key = "user_#{user.id}_notes"
+    note = user.notes.new(note_params)
+
+    if note.save
+      Rails.logger.info "🔍 Redis Keys Before: #{REDIS.keys('*')}"
+      Rails.logger.info "🔄 Clearing cache in Redis"
+      REDIS.del(cache_key)  # Delete cached notes so that fresh data is fetched
+     
+  
+      Rails.logger.info "✅ Redis Keys After Deletion: #{REDIS.keys('*')}"
+  
+      return { success: true, note: note }  # ✅ Ensure proper hash return
+    else
+      return { success: false, errors: note.errors.full_messages }
     end
+
+
+    # begin
+    #   note = user.notes.build(note_params.merge(isDeleted: false))
+    #   if note.save
+    #     { success: true, note: note }
+    #   else
+    #     { success: false, errors: note.errors.full_messages }
+    #   end
+    # rescue StandardError => e
+    #   { success: false, errors: ["Failed to create note: #{e.message}"] }
+    # end
   end
 
   def self.update_note(note, note_params)
