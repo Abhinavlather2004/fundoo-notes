@@ -3,14 +3,28 @@ class Api::V1::NotesController < ApplicationController
   before_action :set_note, only: [:update_note, :toggle_archive, :change_color, :add_collaborator, :toggle_delete]
 
   def get_all_notes
+
+
     begin
-      notes = Rails.cache.fetch("user_#{current_user.id}_notes", expires_in: 10.minutes) do
-        current_user.notes.where(isDeleted: false).to_a + current_user.shared_notes.where(isDeleted: false).to_a
-      end
-      render json: notes, status: :ok
-    rescue => e
-      render json: { error: "Failed to fetch notes", message: e.message }, status: :internal_server_error
+      Rails.logger.info "notes_service "
+      
+      result = NotesService.get_all_notes(current_user)  # This now uses Redis cache
+  
+      Rails.logger.info "✅ Notes retrieved: #{result}"
+      render json: result, status: :ok
+    rescue StandardError => e
+      Rails.logger.error "❌ Error fetching notes: #{e.message}"
+      render json: { errors: e.message }, status: :internal_server_error
     end
+
+    # begin
+    #   notes = Rails.cache.fetch("user_#{current_user.id}_notes", expires_in: 10.minutes) do
+    #     current_user.notes.where(isDeleted: false).to_a + current_user.shared_notes.where(isDeleted: false).to_a
+    #   end
+    #   render json: notes, status: :ok
+    # rescue => e
+    #   render json: { error: "Failed to fetch notes", message: e.message }, status: :internal_server_error
+    # end
   end
 
   def create_note

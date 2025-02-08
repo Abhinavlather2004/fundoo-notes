@@ -1,10 +1,32 @@
 class NotesService
   def self.get_all_notes(user)
-    begin
-      user.notes.where(isDeleted: false) # Only fetch active notes of the logged-in user
-    rescue StandardError => e
-      { success: false, errors: ["Failed to fetch notes: #{e.message}"] }
-    end
+
+    cache_key = "user_#{user.id}_notes"  # Unique cache key for each user
+    
+      # Try to get cached notes from Redis
+      cached_notes = REDIS.get(cache_key)
+    
+      if cached_notes.present?
+        Rails.logger.info "✅ Serving notes from Redis cache"
+        return JSON.parse(cached_notes)  # Return cached data
+      else
+        Rails.logger.info "🔄 Fetching notes from DB and caching in Redis"
+        notes = user.notes.where(isDeleted: false)  # Fetch from DB
+    
+        # Store the notes in Redis with a unique cache key
+        REDIS.set(cache_key, notes.to_json)
+    
+        # Set an expiration time for the cached notes (10 minutes)
+        # REDIS.expire(cache_key, 10.minutes.to_i)
+    
+        return notes
+      end
+
+    # begin
+    #   user.notes.where(isDeleted: false) # Only fetch active notes of the logged-in user
+    # rescue StandardError => e
+    #   { success: false, errors: ["Failed to fetch notes: #{e.message}"] }
+    # end
   end
 
   def self.create_note(user, note_params)
