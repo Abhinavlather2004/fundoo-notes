@@ -1,6 +1,6 @@
 class Api::V1::NotesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_note, only: [:update_note, :toggle_archive, :change_color, :add_collaborator, :toggle_delete]
+  before_action :set_note, only: [:get_note, :update_note, :toggle_archive, :change_color, :add_collaborator, :toggle_delete, :soft_delete_note]
 
   def get_all_notes
 
@@ -115,6 +115,15 @@ class Api::V1::NotesController < ApplicationController
       end
     rescue StandardError => e
       render json: { error: "Failed to add collaborator", message: e.message }, status: :internal_server_error
+    end
+  end
+
+  def soft_delete_note
+    begin
+      result = NotesService.soft_delete_note(@note)
+      render json: { message: "Note soft deleted successfully" }, status: :ok
+    rescue StandardError => e
+      render json: { error: "Failed to soft delete note", message: e.message }, status: :internal_server_error
     end
   end
 

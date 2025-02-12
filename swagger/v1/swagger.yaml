@@ -1,0 +1,295 @@
+openapi: 3.0.1
+info:
+  title: Fundoo Notes API
+  description: API documentation for Fundoo Notes application
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api/v1
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /users:
+    post:
+      summary: Register a new user
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        201:
+          description: User created successfully
+        400:
+          description: Bad request
+
+  /users/login:
+    post:
+      summary: User login
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        401:
+          description: Unauthorized
+
+  /users/forgot_password:
+    put:
+      summary: Forgot password
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        200:
+          description: OTP sent successfully
+        400:
+          description: Bad request
+
+  /users/reset_password/{id}:
+    put:
+      summary: Reset password
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                otp:
+                  type: integer
+                new_password:
+                  type: string
+      responses:
+        200:
+          description: Password reset successfully
+        400:
+          description: Invalid OTP or expired
+
+  /notes:
+    get:
+      summary: Get all notes
+      tags:
+        - Notes
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of notes
+    post:
+      summary: Create a new note
+      tags:
+        - Notes
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+      responses:
+        201:
+          description: Note created successfully
+
+  /notes/{id}:
+    get:
+      summary: Get a note by ID
+      tags:
+        - Notes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Note details
+    put:
+      summary: Update a note
+      tags:
+        - Notes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+      responses:
+        200:
+          description: Note updated successfully
+
+  /notes/{id}/archive:
+    put:
+      summary: Toggle archive status of a note
+      tags:
+        - Notes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Note archived/unarchived successfully
+
+  /notes/{id}/toggle_delete:
+    put:
+      summary: Toggle delete status of a note
+      tags:
+        - Notes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Note deleted/restored successfully
+
+  /soft_delete:
+    delete:
+      summary: Soft delete a note
+      tags:
+        - Notes
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+      responses:
+        200:
+          description: Note soft deleted successfully
+
+  /notes/{id}/color:
+    put:
+      summary: Change note color
+      tags:
+        - Notes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                color:
+                  type: string
+      responses:
+        200:
+          description: Note color updated successfully
+
+  /notes/{id}/collaborators:
+    post:
+      summary: Add collaborator to a note
+      tags:
+        - Notes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collaborator_id:
+                  type: integer
+      responses:
+        200:
+          description: Collaborator added successfully
+
+security:
+  - BearerAuth: []

@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  mount Rswag::Ui::Engine => '/api-docs'
+  mount Rswag::Api::Engine => '/api-docs'
   namespace :api do
     namespace :v1 do
       post '/users', to: 'users#create_user'
@@ -11,10 +13,11 @@ Rails.application.routes.draw do
       post '/notes', to: 'notes#create_note'
       get '/notes/:id', to: 'notes#get_note'
       put '/notes/:id', to: 'notes#update_note'
-      delete '/notes/:id', to: 'notes#delete_note'
+      # delete '/notes/:id', to: 'notes#delete_note'
 
       put '/notes/:id/archive', to: 'notes#toggle_archive'
       put '/notes/:id/toggle_delete', to: 'notes#toggle_delete'
+      delete 'soft_delete', to: 'notes#soft_delete_note'
 
       put '/notes/:id/color', to: 'notes#change_color'
       post '/notes/:id/collaborators', to: 'notes#add_collaborator'
