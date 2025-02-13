@@ -41,8 +41,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_06_170512) do
     t.string "mobile_number"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "reset_otp"
-    t.datetime "otp_sent_at", precision: nil
   end
 
   add_foreign_key "collaborations", "notes"

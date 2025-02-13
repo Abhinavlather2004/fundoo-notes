@@ -62,9 +62,10 @@ development:
 test:
   <<: *default
   database: fundoo_notes_test
-  username: abhinavlather
-  password: ""
+  username: postgres
+  password: Abhinav@2021
   host: localhost
+  port: 5432
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
