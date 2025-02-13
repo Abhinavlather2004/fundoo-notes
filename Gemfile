@@ -82,3 +82,11 @@ gem "factory_bot_rails", "~> 6.4", :groups => [:development, :test]
 group :development, :test do
   gem 'faker'
 end
+
+group :test do
+  gem 'rails-controller-testing'
+end
+
+group :test do
+  gem 'database_cleaner-active_record'
+end
