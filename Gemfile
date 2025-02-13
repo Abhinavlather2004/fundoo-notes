@@ -78,3 +78,7 @@ gem 'rswag'
 gem 'rswag-api'
 gem 'rswag-ui'
 gem "factory_bot_rails", "~> 6.4", :groups => [:development, :test]
+
+group :development, :test do
+  gem 'faker'
+end
