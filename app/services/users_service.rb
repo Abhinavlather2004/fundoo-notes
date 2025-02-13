@@ -9,8 +9,8 @@ class UsersService
   class InvalidOtpError < StandardError 
   end
 
-  @@otp = nil
-  @@otp_generated_at = nil
+  @otp = nil
+  @otp_generated_at = nil
 
   def self.create_user(params)
     user = User.new(params)
@@ -72,24 +72,45 @@ class UsersService
     end
   end
 
-  def self.reset_password(user_id, rp_params)
-    raise InvalidOtpError, "OTP has not been generated" if @@otp.nil?
+  # def self.reset_password(user_id, rp_params)
+  #   raise InvalidOtpError, "OTP has not been generated" if @@otp.nil?
 
-    if rp_params[:otp].to_i == @@otp && (Time.current - @@otp_generated_at < 1.minute)
-      user = User.find_by(id: user_id)
-      if user
-        user.update(password: rp_params[:new_password])
-        @@otp = nil  # ✅ Reset OTP after successful password change
-        return { success: true }
-      else
-        return { success: false, errors: "User not found" }
-      end
-    else
-      return { success: false, errors: "Invalid OTP" }
+  #   if rp_params[:otp].to_i == @@otp && (Time.current - @@otp_generated_at < 1.minute)
+  #     user = User.find_by(id: user_id)
+  #     if user
+  #       user.update(password: rp_params[:new_password])
+  #       @@otp = nil  # ✅ Reset OTP after successful password change
+  #       return { success: true }
+  #     else
+  #       return { success: false, errors: "User not found" }
+  #     end
+  #   else
+  #     return { success: false, errors: "Invalid OTP" }
+  #   end
+  # rescue InvalidOtpError => e
+  #   { success: false, error: e.message }
+  # end
+  def self.reset_password(user_id, params)
+    user = User.find(user_id)
+  
+    unless defined?(@@otp) && @@otp
+      raise InvalidOtpError, 'OTP has not been generated'
     end
-  rescue InvalidOtpError => e
-    { success: false, error: e.message }
+  
+    if @@otp_generated_at < 10.minutes.ago
+      raise InvalidOtpError, 'OTP has expired'
+    end
+  
+    if params[:otp] != @@otp
+      raise InvalidOtpError, 'Invalid OTP'
+    end
+  
+    user.update!(password: params[:new_password])
+    @@otp = nil # Reset OTP after successful use
+    @@otp_generated_at = nil
+    { success: true, message: 'Password reset successfully' }
   end
+
 
   def self.publish_otp_to_queue(email, otp)
     queue_name = "otp_email_queue"
@@ -113,7 +134,16 @@ class UsersService
   private
 
   def self.generate_otp
-    rand(100000..999999) # Generates a 6-digit OTP
+    # rand(100000..999999) # Generates a 6-digit OTP
+    @otp = rand(100000..999999)
+    @otp_generated_at = Time.current
+  end
+
+  def self.valid_otp?(input_otp)
+    return false if @otp.nil? || @otp_generated_at.nil?
+
+    time_difference = Time.current - @otp_generated_at
+    input_otp == @otp && time_difference < 5.minutes
   end
 
 end
