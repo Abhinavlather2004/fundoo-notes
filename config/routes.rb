@@ -17,7 +17,7 @@ Rails.application.routes.draw do
 
       put '/notes/:id/archive', to: 'notes#toggle_archive'
       put '/notes/:id/toggle_delete', to: 'notes#toggle_delete'
-      delete 'soft_delete', to: 'notes#soft_delete_note'
+      delete '/notes/:id', to: 'notes#soft_delete_note'
 
       put '/notes/:id/color', to: 'notes#change_color'
       post '/notes/:id/collaborators', to: 'notes#add_collaborator'

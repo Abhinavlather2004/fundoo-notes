@@ -82,7 +82,7 @@ class NotesService
 
   def self.toggle_archive(note)
     begin
-      note.update(isArchive: !note.isArchive)
+      note.update(is_archived: !note.isArchive)
       if note.save
         { success: true, note: note }
       else
