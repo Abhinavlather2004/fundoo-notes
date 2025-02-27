@@ -51,26 +51,21 @@ class UsersService
   #   end
   # end
   def self.forgot_password(email)
-    begin
-      user = User.find_by(email: email)
-      raise InvalidEmailError, "User with this email does not exist" if user.nil?
+    user = User.find_by(email: email)
+    return { success: false, error: "User not found" } unless user
   
-      # Generate and save the OTP
-      @@otp = generate_otp
-      @@otp_generated_at = Time.current
+    otp = rand(100000..999999) # Generate 6-digit OTP
+    Rails.cache.write("reset_password_otp_#{user.id}", otp, expires_in: 10.minutes) # Store OTP in cache for 10 minutes
   
-      # Publish OTP to RabbitMQ
-      publish_otp_to_queue(user.email, @@otp)
-
-      OtpConsumer.start
+    # Send OTP to user's email
+    UserMailer.text_mail(user.email, "Your OTP for password reset is #{otp}").deliver_now
   
-      { success: true, message: "OTP sent successfully" }
-    rescue InvalidEmailError => e
-      { success: false, error: e.message }
-    rescue StandardError => e
-      { success: false, error: "Something went wrong: #{e.message}" }
-    end
+    { success: true, message: "OTP sent to your email.", user_id: user.id }
   end
+  
+  
+  
+  
 
   # def self.reset_password(user_id, rp_params)
   #   raise InvalidOtpError, "OTP has not been generated" if @@otp.nil?
@@ -90,26 +85,23 @@ class UsersService
   # rescue InvalidOtpError => e
   #   { success: false, error: e.message }
   # end
-  def self.reset_password(user_id, params)
-    user = User.find(user_id)
+  def self.reset_password(user_id, otp, new_password)
+    stored_otp = Rails.cache.read("reset_password_otp_#{user_id}") # Retrieve OTP from cache
   
-    unless defined?(@@otp) && @@otp
-      raise InvalidOtpError, 'OTP has not been generated'
-    end
+    return { success: false, error: "Invalid or expired OTP" } unless stored_otp && stored_otp.to_s == otp.to_s
   
-    if @@otp_generated_at < 10.minutes.ago
-      raise InvalidOtpError, 'OTP has expired'
-    end
+    user = User.find_by(id: user_id)
+    return { success: false, error: "User not found" } unless user
   
-    if params[:otp] != @@otp
-      raise InvalidOtpError, 'Invalid OTP'
-    end
+    user.update(password: new_password) # Update password
   
-    user.update!(password: params[:new_password])
-    @@otp = nil # Reset OTP after successful use
-    @@otp_generated_at = nil
-    { success: true, message: 'Password reset successfully' }
+    Rails.cache.delete("reset_password_otp_#{user_id}") # Clear OTP after successful password reset
+  
+    { success: true, message: "Password has been reset successfully." }
   end
+  
+  
+  
 
 
   def self.publish_otp_to_queue(email, otp)
@@ -135,8 +127,9 @@ class UsersService
 
   def self.generate_otp
     # rand(100000..999999) # Generates a 6-digit OTP
-    @otp = rand(100000..999999)
+    otp = rand(100000..999999)
     @otp_generated_at = Time.current
+    otp
   end
 
   def self.valid_otp?(input_otp)

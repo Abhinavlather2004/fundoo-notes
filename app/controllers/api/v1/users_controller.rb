@@ -38,15 +38,18 @@ module Api
       def forgot_password
         result = UsersService.forgot_password(forgot_password_params[:email])
         if result[:success]
-          render json: { message: result[:message]}, status: :ok
+          render json: { message: result[:message], user_id: result[:user_id] }, status: :ok
         else
           render json: { error: result[:error] }, status: :bad_request
         end
       end
+      
+      
 
       def reset_password
         user_id = params[:id]  # Extracting user ID from request params
-        result = UsersService.reset_password(user_id, reset_password_params)
+        result = UsersService.reset_password(user_id, reset_password_params[:otp], reset_password_params[:new_password])
+
 
         if result[:success]
           render json: { message: "Password updated successfully" }, status: :ok
