@@ -87,7 +87,10 @@ class Api::V1::NotesController < ApplicationController
 
   def change_color
     begin
+      user_id = current_user.id  
+      cache_key = "user_#{user_id}_notes"
       result = NotesService.change_color(@note, params[:color])
+      REDIS.del(cache_key) if REDIS.exists(cache_key)
       if result[:success]
         render json: result[:note], status: :ok
       else
