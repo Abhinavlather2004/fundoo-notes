@@ -72,7 +72,7 @@ gem "bunny", "~> 2.23"
 
 gem 'sidekiq'
 
-gem "redis", "~> 4.2"
+gem "redis", "~> 5.4"
 
 gem 'rswag'
 gem 'rswag-api'
