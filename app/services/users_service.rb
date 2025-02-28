@@ -31,7 +31,7 @@ class UsersService
     end
 
     token = JsonWebToken.encode(user_id: user.id, name: user.name, email: user.email)
-    { success: true, token: token }
+    { success: true, token: token, user: {name: user.name, email: user.email} }
   end
 
   # def self.forgot_password(email)

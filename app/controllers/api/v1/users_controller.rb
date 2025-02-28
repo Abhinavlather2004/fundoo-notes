@@ -17,7 +17,7 @@ module Api
 
         begin
           result = UsersService.authenticate_user(login_params)
-          render json: { message: "Login successful", token: result[:token] }, status: :ok
+          render json: { message: "Login successful", token: result[:token], user: result[:user] }, status: :ok
         rescue UsersService::InvalidEmailError, UsersService::InvalidPasswordError => e
           render json: { error: e.message }, status: :bad_request
         end

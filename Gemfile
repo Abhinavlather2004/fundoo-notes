@@ -92,3 +92,6 @@ group :test do
 end
 
 gem 'rack-cors'
+gem "color", "~> 1.8"
+gem 'colorist'
+
