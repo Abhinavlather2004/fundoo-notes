@@ -134,4 +134,16 @@ class NotesService
       { success: false, errors: ["Failed to add collaborator: #{e.message}"] }
     end
   end
+  
+  def self.set_reminder(note, reminder)
+    reminder_time = reminder.present? ? Time.parse(reminder) : nil
+    if note.update(reminder: reminder_time)
+      { success: true, note: note }
+    else
+      { success: false, errors: note.errors.full_messages }
+    end
+  rescue ArgumentError => e
+    { success: false, errors: ["Invalid reminder time format"] }
+  end
+
 end

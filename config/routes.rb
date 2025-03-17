@@ -22,6 +22,8 @@ Rails.application.routes.draw do
       put '/notes/:id/color', to: 'notes#change_color'
       post '/notes/:id/collaborators', to: 'notes#add_collaborator'
 
+      put '/notes/:id/reminder', to: 'notes#set_reminder'
+
     end
   end
 end

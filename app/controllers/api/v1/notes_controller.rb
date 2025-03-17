@@ -1,6 +1,6 @@
 class Api::V1::NotesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_note, only: [:get_note, :update_note, :toggle_archive, :change_color, :add_collaborator, :toggle_delete, :soft_delete_note]
+  before_action :set_note, only: [:get_note, :update_note, :toggle_archive, :change_color, :add_collaborator, :toggle_delete, :soft_delete_note, :set_reminder]
 
   def get_all_notes
 
@@ -130,6 +130,22 @@ class Api::V1::NotesController < ApplicationController
     end
   end
 
+  def set_reminder
+    begin
+      user_id = current_user.id
+      cache_key = "user_#{user_id}_notes"
+      result = NotesService.set_reminder(@note, params[:reminder])
+      REDIS.del(cache_key) if REDIS.exists(cache_key)
+      if result[:success]
+        render json: result[:note], status: :ok
+      else
+        render json: { errors: result[:errors] }, status: :unprocessable_entity
+      end
+    rescue StandardError => e
+      render json: { error: "Failed to set reminder", message: e.message }, status: :internal_server_error
+    end
+  end
+
   private
 
   def set_note
@@ -145,6 +161,6 @@ class Api::V1::NotesController < ApplicationController
   end
 
   def note_params
-    params.require(:note).permit(:content)
+    params.require(:note).permit(:content, :reminder)
   end
 end
